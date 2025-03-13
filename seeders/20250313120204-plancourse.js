@@ -1,0 +1,73 @@
+'use strict';
+
+/** @type {import('sequelize-cli').Migration} */
+module.exports = {
+  async up (queryInterface, Sequelize) {
+    await queryInterface.bulkInsert('PlanCourses', [
+      { courseId: 1, planId: 1,
+        createdAt:new Date(),
+        updatedAt:new Date() },
+    { courseId: 2, planId: 1,
+      createdAt:new Date(),
+      updatedAt:new Date() },
+    { courseId: 3, planId: 2,
+      createdAt:new Date(),
+      updatedAt:new Date() },
+    { courseId: 4, planId: 2,
+      createdAt:new Date(),
+      updatedAt:new Date() },
+    { courseId: 5, planId: 3,
+      createdAt:new Date(),
+      updatedAt:new Date() },
+    { courseId: 6, planId: 3,
+      createdAt:new Date(),
+      updatedAt:new Date() },
+    { courseId: 7, planId: 4,
+      createdAt:new Date(),
+      updatedAt:new Date() },
+    { courseId: 8, planId: 4,
+      createdAt:new Date(),
+      updatedAt:new Date() },
+    { courseId: 9, planId: 5,
+      createdAt:new Date(),
+      updatedAt:new Date() },
+    { courseId: 10, planId: 5,
+      createdAt:new Date(),
+      updatedAt:new Date() },
+    { courseId: 1, planId: 6,
+      createdAt:new Date(),
+      updatedAt:new Date() },
+    { courseId: 2, planId: 6 ,
+      createdAt:new Date(),
+      updatedAt:new Date()},
+    { courseId: 3, planId: 7 ,
+      createdAt:new Date(),
+      updatedAt:new Date()},
+    { courseId: 4, planId: 7,
+      createdAt:new Date(),
+      updatedAt:new Date() },
+    { courseId: 5, planId: 8,
+      createdAt:new Date(),
+      updatedAt:new Date() },
+    { courseId: 6, planId: 8 ,
+      createdAt:new Date(),
+      updatedAt:new Date()},
+    { courseId: 7, planId: 9,
+      createdAt:new Date(),
+      updatedAt:new Date() },
+    { courseId: 8, planId: 9,
+      createdAt:new Date(),
+      updatedAt:new Date() },
+    { courseId: 9, planId: 10,
+      createdAt:new Date(),
+      updatedAt:new Date() },
+    { courseId: 10, planId: 10,
+      createdAt:new Date(),
+      updatedAt:new Date() }
+    ], {});
+  },
+
+  async down (queryInterface, Sequelize) {
+    await queryInterface.bulkDelete('PlanCourses', null, {});
+  }
+};
