@@ -4,7 +4,7 @@ const { Student } = require('../../models')
 //模糊搜索需要
 const { Op } = require('sequelize')
 //错误类
-const { NotFoundError, success,failure } = require('../../utils/response')
+const { NotFoundError, success, failure } = require('../../utils/response')
 
 /**
  * 查询学生列表(模糊搜索)++所有
@@ -12,8 +12,7 @@ const { NotFoundError, success,failure } = require('../../utils/response')
  */
 router.get('/', async function (req, res, next) {
   try {
-    //模糊查询
-    const query = req.query
+    let query=req.query
 
     //分页处理
     //当前是第几页，如果不传，那就是第一页
@@ -29,16 +28,7 @@ router.get('/', async function (req, res, next) {
       offset: offset
     }
 
-    console.log(query)
-
-    //模糊条件
-    if (query.username) {
-      condition.where = {
-        username: {
-          [Op.like]: `%${query.username}%`
-        }
-      }
-    }
+    condition.where= getLikeStudent(query)
 
     // const students = await Student.findAll(condition)
     const { count, rows } = await Student.findAndCountAll(condition)
@@ -53,7 +43,7 @@ router.get('/', async function (req, res, next) {
     })
   }
   catch (error) {
-    failure(res,error)
+    failure(res, error)
   }
 });
 
@@ -65,9 +55,9 @@ router.get('/:id', async function (req, res, next) {
   try {
     const student = await getStudent(req)
 
-    success(res,'查询学生详情成功',{student})
+    success(res, '查询学生详情成功', { student })
   } catch (error) {
-    failure(res,error)
+    failure(res, error)
   }
 })
 
@@ -79,9 +69,9 @@ router.post('/', async function (req, res,) {
   try {
     const student = await Student.create(req.body)
 
-    success(res,'发送成功',{student},201)
+    success(res, '发送成功', { student }, 201)
   } catch (error) {
-    failure(res,error)
+    failure(res, error)
   }
 })
 
@@ -95,9 +85,9 @@ router.delete('/:id', async function (req, res) {
 
 
     await student.destroy()
-    success(res,'删除学生成功')
+    success(res, '删除学生成功')
   } catch (error) {
-    failure(res,error)
+    failure(res, error)
   }
 })
 
@@ -111,10 +101,10 @@ router.put('/:id', async function (req, res) {
 
     await student.update(req.body)
 
-    success(res,'更新学生成功',{student})
+    success(res, '更新学生成功', { student })
 
   } catch (error) {
-    failure(res,error)
+    failure(res, error)
   }
 })
 
@@ -138,8 +128,24 @@ async function getStudent(req) {
 /**
  * 公共方法：模糊查询学生
  */
-async function getLikeStudent(query) {
-  
+function getLikeStudent(query) {
+  let search
+  for (let key in query) {
+
+    if (key !== 'pageSize' && key !== 'currentPage') {
+
+      //模糊条件
+      if (query[key]) {
+        search = {
+          [key]: {
+            [Op.like]: `%${query[key]}%`
+          }
+        }
+      }
+    }
+
+  }
+  return search
 }
 
 module.exports = router;
