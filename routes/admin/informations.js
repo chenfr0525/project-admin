@@ -14,40 +14,18 @@ router.get('/', async function (req, res, next) {
   try {
     //模糊查询
     const query = req.query
-
-    //分页处理
-    //当前是第几页，如果不传，那就是第一页
-    const currentPage = Math.abs(Number(query.currentPage)) || 1
-    //每页显示多少条数据，如果不传，那就显示10条
-    const pageSize = Math.abs(Number(query.pageSize)) || 10
-    //计算offset
-    const offset = (currentPage - 1) * pageSize
-
     const condition = {
-      order: [['id', 'DESC']],
-      limit: pageSize,
-      offset: offset
+      order: [['id', 'DESC']]
     }
 
     //模糊条件
-    if (query.title) {
-      condition.where = {
-        title: {
-          [Op.like]: `%${query.title}%`
-        }
-      }
-    }
+    condition.where=getLikeInformation(query)
 
     // const informations = await Information.findAll(condition)
-    const { count, rows } = await Information.findAndCountAll(condition)
+    const {rows } = await Information.findAndCountAll(condition)
 
     success(res, '查询通知列表成功', {
-      informations: rows,
-      pagination: {
-        total: count,
-        currentPage,
-        pageSize
-      }
+      informations: rows
     })
   }
   catch (error) {
@@ -131,6 +109,29 @@ async function getInformation(req) {
     throw new NotFoundError(`ID:${id}的通知未找到`)
   }
   return information
+}
+
+/**
+ * 公共方法：模糊查询
+ */
+function getLikeInformation(query) {
+  let search
+  for (let key in query) {
+
+    if (key !== 'pageSize' && key !== 'currentPage') {
+
+      //模糊条件
+      if (query[key]) {
+        search = {
+          [key]: {
+            [Op.like]: `%${query[key]}%`
+          }
+        }
+      }
+    }
+
+  }
+  return search
 }
 
 module.exports = router;

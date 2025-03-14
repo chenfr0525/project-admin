@@ -1,14 +1,14 @@
 var express = require('express');
 var router = express.Router();
-const { CourseChapter } = require('../../models')
+const { Admin } = require('../../models')
 //模糊搜索需要
 const { Op } = require('sequelize')
 //错误类
 const { NotFoundError, success,failure } = require('../../utils/response')
 
 /**
- * 查询章节列表(模糊搜索)++所有
- * GET /admin/coursechapters
+ * 查询管理员列表(模糊搜索)++所有
+ * GET /admin/admins
  */
 router.get('/', async function (req, res, next) {
   try {
@@ -30,13 +30,13 @@ router.get('/', async function (req, res, next) {
     }
 
     //模糊条件
-    condition.where=getLikeCourseChapter(query)
+    condition.where=getLikeAdmin(query)
 
-    // const coursechapters = await CourseChapter.findAll(condition)
-    const { count, rows } = await CourseChapter.findAndCountAll(condition)
+    // const admins = await Admin.findAll(condition)
+    const { count, rows } = await Admin.findAndCountAll(condition)
 
-    success(res, '查询章节列表成功', {
-      coursechapters: rows,
+    success(res, '查询管理员列表成功', {
+      admins: rows,
       pagination: {
         total: count,
         currentPage,
@@ -50,60 +50,60 @@ router.get('/', async function (req, res, next) {
 });
 
 /**
- * 查询章节详情(id)
- * GET /admin/coursechapters/:id
+ * 查询管理员详情(id)
+ * GET /admin/admins/:id
  */
 router.get('/:id', async function (req, res, next) {
   try {
-    const coursechapter = await getCourseChapter(req)
+    const admin = await getAdmin(req)
 
-    success(res,'查询章节详情成功',{coursechapter})
+    success(res,'查询管理员详情成功',{admin})
   } catch (error) {
     failure(res,error)
   }
 })
 
 /**
- * 创建章节
- * POST /admin/coursechapters
+ * 创建管理员
+ * POST /admin/admins
  */
 router.post('/', async function (req, res,) {
   try {
-    const coursechapter = await CourseChapter.create(req.body)
+    const admin = await Admin.create(req.body)
 
-    success(res,'发送成功',{coursechapter},201)
+    success(res,'发送成功',{admin},201)
   } catch (error) {
     failure(res,error)
   }
 })
 
 /**
- * 删除章节
- * DELETE /admin/coursechapters/:id
+ * 删除管理员
+ * DELETE /admin/admins/:id
  */
 router.delete('/:id', async function (req, res) {
   try {
-    const coursechapter = await getCourseChapter(req)
+    const admin = await getAdmin(req)
 
 
-    await coursechapter.destroy()
-    success(res,'删除章节成功')
+    await admin.destroy()
+    success(res,'删除管理员成功')
   } catch (error) {
     failure(res,error)
   }
 })
 
 /**
- * 更新章节
- * PUT /admin/coursechapters/:id
+ * 更新管理员
+ * PUT /admin/admins/:id
  */
 router.put('/:id', async function (req, res) {
   try {
-    const coursechapter = await getCourseChapter(req)
+    const admin = await getAdmin(req)
 
-    await coursechapter.update(req.body)
+    await admin.update(req.body)
 
-    success(res,'更新章节成功',{coursechapter})
+    success(res,'更新管理员成功',{admin})
 
   } catch (error) {
     failure(res,error)
@@ -111,26 +111,26 @@ router.put('/:id', async function (req, res) {
 })
 
 /**
- * 公共方法：查询当前章节
+ * 公共方法：查询当前管理员
  */
-async function getCourseChapter(req) {
-  //获取章节ID
+async function getAdmin(req) {
+  //获取管理员ID
   const { id } = req.params
 
-  //查询当前章节
-  const coursechapter = await CourseChapter.findByPk(id)
+  //查询当前管理员
+  const admin = await Admin.findByPk(id)
 
   //如果没有找到就抛出异常
-  if (!coursechapter) {
-    throw new NotFoundError(`ID:${id}的章节未找到`)
+  if (!admin) {
+    throw new NotFoundError(`ID:${id}的管理员未找到`)
   }
-  return coursechapter
+  return admin
 }
 
 /**
  * 公共方法：模糊查询
  */
-function getLikeCourseChapter(query) {
+function getLikeAdmin(query) {
   let search
   for (let key in query) {
 

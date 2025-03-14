@@ -68,7 +68,6 @@ router.get('/:id', async function (req, res, next) {
 router.post('/', async function (req, res,) {
   try {
     const student = await Student.create(req.body)
-
     success(res, '发送成功', { student }, 201)
   } catch (error) {
     failure(res, error)

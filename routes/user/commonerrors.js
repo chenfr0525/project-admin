@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-const { Commonerror } = require('../../models')
+const { CommonError } = require('../../models')
 //模糊搜索需要
 const { Op } = require('sequelize')
 //错误类
@@ -30,16 +30,10 @@ router.get('/', async function (req, res, next) {
     }
 
     //模糊条件
-    if (query.title) {
-      condition.where = {
-        title: {
-          [Op.like]: `%${query.title}%`
-        }
-      }
-    }
+    condition.where=getLikeCommonError(query)
 
-    // const commonerrors = await Commonerror.findAll(condition)
-    const { count, rows } = await Commonerror.findAndCountAll(condition)
+    // const commonerrors = await CommonError.findAll(condition)
+    const { count, rows } = await CommonError.findAndCountAll(condition)
 
     success(res, '查询错误列表成功', {
       commonerrors: rows,
@@ -61,7 +55,7 @@ router.get('/', async function (req, res, next) {
  */
 router.get('/:id', async function (req, res, next) {
   try {
-    const commonerror = await getCommonerror(req)
+    const commonerror = await getCommonError(req)
 
     success(res,'查询错误详情成功',{commonerror})
   } catch (error) {
@@ -75,7 +69,7 @@ router.get('/:id', async function (req, res, next) {
  */
 router.post('/', async function (req, res,) {
   try {
-    const commonerror = await Commonerror.create(req.body)
+    const commonerror = await CommonError.create(req.body)
 
     success(res,'发送成功',{commonerror},201)
   } catch (error) {
@@ -89,7 +83,7 @@ router.post('/', async function (req, res,) {
  */
 router.delete('/:id', async function (req, res) {
   try {
-    const commonerror = await getCommonerror(req)
+    const commonerror = await getCommonError(req)
 
 
     await commonerror.destroy()
@@ -105,7 +99,7 @@ router.delete('/:id', async function (req, res) {
  */
 router.put('/:id', async function (req, res) {
   try {
-    const commonerror = await getCommonerror(req)
+    const commonerror = await getCommonError(req)
 
     await commonerror.update(req.body)
 
@@ -119,18 +113,41 @@ router.put('/:id', async function (req, res) {
 /**
  * 公共方法：查询当前错误
  */
-async function getCommonerror(req) {
+async function getCommonError(req) {
   //获取错误ID
   const { id } = req.params
 
   //查询当前错误
-  const commonerror = await Commonerror.findByPk(id)
+  const commonerror = await CommonError.findByPk(id)
 
   //如果没有找到就抛出异常
   if (!commonerror) {
     throw new NotFoundError(`ID:${id}的错误未找到`)
   }
   return commonerror
+}
+
+/**
+ * 公共方法：模糊查询
+ */
+function getLikeCommonError(query) {
+  let search
+  for (let key in query) {
+
+    if (key !== 'pageSize' && key !== 'currentPage') {
+
+      //模糊条件
+      if (query[key]) {
+        search = {
+          [key]: {
+            [Op.like]: `%${query[key]}%`
+          }
+        }
+      }
+    }
+
+  }
+  return search
 }
 
 module.exports = router;

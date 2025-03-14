@@ -18,7 +18,6 @@ module.exports = (sequelize, DataTypes) => {
     content: DataTypes.TEXT,
     adminId: DataTypes.INTEGER,
     status: DataTypes.TINYINT,
-    created_at: DataTypes.DATE
   }, {
     sequelize,
     modelName: 'Information',

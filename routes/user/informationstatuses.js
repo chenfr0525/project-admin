@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-const { Informationstatuse } = require('../../models')
+const { InformationStatus } = require('../../models')
 //模糊搜索需要
 const { Op } = require('sequelize')
 //错误类
@@ -29,8 +29,10 @@ router.get('/', async function (req, res, next) {
       offset: offset
     }
 
-    // const informationstatuses = await Informationstatuse.findAll(condition)
-    const { count, rows } = await Informationstatuse.findAndCountAll(condition)
+    condition.where=getLikeInformationStatue(query)
+
+    // const informationstatuses = await InformationStatus.findAll(condition)
+    const { count, rows } = await InformationStatus.findAndCountAll(condition)
 
     success(res, '查询学生信息状态列表成功', {
       informationstatuses: rows,
@@ -52,7 +54,7 @@ router.get('/', async function (req, res, next) {
  */
 router.get('/:id', async function (req, res, next) {
   try {
-    const informationstatuse = await getInformationstatuse(req)
+    const informationstatuse = await getInformationStatus(req)
 
     success(res,'查询学生信息状态详情成功',{informationstatuse})
   } catch (error) {
@@ -66,7 +68,7 @@ router.get('/:id', async function (req, res, next) {
  */
 router.post('/', async function (req, res,) {
   try {
-    const informationstatuse = await Informationstatuse.create(req.body)
+    const informationstatuse = await InformationStatus.create(req.body)
 
     success(res,'发送成功',{informationstatuse},201)
   } catch (error) {
@@ -80,7 +82,7 @@ router.post('/', async function (req, res,) {
  */
 router.delete('/:id', async function (req, res) {
   try {
-    const informationstatuse = await getInformationstatuse(req)
+    const informationstatuse = await getInformationStatus(req)
 
 
     await informationstatuse.destroy()
@@ -96,7 +98,7 @@ router.delete('/:id', async function (req, res) {
  */
 router.put('/:id', async function (req, res) {
   try {
-    const informationstatuse = await getInformationstatuse(req)
+    const informationstatuse = await getInformationStatus(req)
 
     await informationstatuse.update(req.body)
 
@@ -110,18 +112,41 @@ router.put('/:id', async function (req, res) {
 /**
  * 公共方法：查询当前学生信息状态
  */
-async function getInformationstatuse(req) {
+async function getInformationStatus(req) {
   //获取学生信息状态ID
   const { id } = req.params
 
   //查询当前学生信息状态
-  const informationstatuse = await Informationstatuse.findByPk(id)
+  const informationstatuse = await InformationStatus.findByPk(id)
 
   //如果没有找到就抛出异常
   if (!informationstatuse) {
     throw new NotFoundError(`ID:${id}的学生信息状态未找到`)
   }
   return informationstatuse
+}
+
+/**
+ * 公共方法：模糊查询
+ */
+function getLikeInformationStatue(query) {
+  let search
+  for (let key in query) {
+
+    if (key !== 'pageSize' && key !== 'currentPage') {
+
+      //模糊条件
+      if (query[key]) {
+        search = {
+          [key]: {
+            [Op.like]: `%${query[key]}%`
+          }
+        }
+      }
+    }
+
+  }
+  return search
 }
 
 module.exports = router;

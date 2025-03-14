@@ -1,8 +1,6 @@
 var express = require('express');
 var router = express.Router();
-const { Motivationallquote } = require('../../models')
-//模糊搜索需要
-const { Op } = require('sequelize')
+const { MotivationalQuote } = require('../../models')
 //错误类
 const { NotFoundError, success,failure } = require('../../utils/response')
 
@@ -12,34 +10,8 @@ const { NotFoundError, success,failure } = require('../../utils/response')
  */
 router.get('/', async function (req, res, next) {
   try {
-    //模糊查询
-    const query = req.query
-
-    //分页处理
-    //当前是第几页，如果不传，那就是第一页
-    const currentPage = Math.abs(Number(query.currentPage)) || 1
-    //每页显示多少条数据，如果不传，那就显示10条
-    const pageSize = Math.abs(Number(query.pageSize)) || 10
-    //计算offset
-    const offset = (currentPage - 1) * pageSize
-
-    const condition = {
-      order: [['id', 'DESC']],
-      limit: pageSize,
-      offset: offset
-    }
-
-    // const motivationallquotes = await Motivationallquote.findAll(condition)
-    const { count, rows } = await Motivationallquote.findAndCountAll(condition)
-
-    success(res, '查询激励语句列表成功', {
-      motivationallquotes: rows,
-      pagination: {
-        total: count,
-        currentPage,
-        pageSize
-      }
-    })
+    const motivationallquotes = await MotivationalQuote.findAll()
+    success(res, '查询激励语句列表成功', {motivationallquotes})
   }
   catch (error) {
     failure(res,error)
@@ -52,7 +24,7 @@ router.get('/', async function (req, res, next) {
  */
 router.get('/:id', async function (req, res, next) {
   try {
-    const motivationallquote = await getMotivationallquote(req)
+    const motivationallquote = await getMotivationalQuote(req)
 
     success(res,'查询激励语句详情成功',{motivationallquote})
   } catch (error) {
@@ -66,7 +38,7 @@ router.get('/:id', async function (req, res, next) {
  */
 router.post('/', async function (req, res,) {
   try {
-    const motivationallquote = await Motivationallquote.create(req.body)
+    const motivationallquote = await MotivationalQuote.create(req.body)
 
     success(res,'发送成功',{motivationallquote},201)
   } catch (error) {
@@ -80,7 +52,7 @@ router.post('/', async function (req, res,) {
  */
 router.delete('/:id', async function (req, res) {
   try {
-    const motivationallquote = await getMotivationallquote(req)
+    const motivationallquote = await getMotivationalQuote(req)
 
 
     await motivationallquote.destroy()
@@ -96,7 +68,7 @@ router.delete('/:id', async function (req, res) {
  */
 router.put('/:id', async function (req, res) {
   try {
-    const motivationallquote = await getMotivationallquote(req)
+    const motivationallquote = await getMotivationalQuote(req)
 
     await motivationallquote.update(req.body)
 
@@ -110,12 +82,12 @@ router.put('/:id', async function (req, res) {
 /**
  * 公共方法：查询当前激励语句
  */
-async function getMotivationallquote(req) {
+async function getMotivationalQuote(req) {
   //获取激励语句ID
   const { id } = req.params
 
   //查询当前激励语句
-  const motivationallquote = await Motivationallquote.findByPk(id)
+  const motivationallquote = await MotivationalQuote.findByPk(id)
 
   //如果没有找到就抛出异常
   if (!motivationallquote) {

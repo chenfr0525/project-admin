@@ -29,7 +29,7 @@ function success(res,message,data,code=200){
  * @param error
  */
 function failure(res,error){
-  if(error.name==='SequelizeValidationError'){
+  if(error.name==='SequelizeUniqueConstraintError'){
     const errors=error.errors.map(e=>e.message)
     return res.status(400).json({
       status:400,

@@ -29,6 +29,8 @@ router.get('/', async function (req, res, next) {
       offset: offset
     }
 
+    condition.where=getLikePlan(query)
+
     // const plans = await Plan.findAll(condition)
     const { count, rows } = await Plan.findAndCountAll(condition)
 
@@ -122,6 +124,29 @@ async function getPlan(req) {
     throw new NotFoundError(`ID:${id}的计划未找到`)
   }
   return plan
+}
+
+/**
+ * 公共方法：模糊查询
+ */
+function getLikePlan(query) {
+  let search
+  for (let key in query) {
+
+    if (key !== 'pageSize' && key !== 'currentPage') {
+
+      //模糊条件
+      if (query[key]) {
+        search = {
+          [key]: {
+            [Op.like]: `%${query[key]}%`
+          }
+        }
+      }
+    }
+
+  }
+  return search
 }
 
 module.exports = router;

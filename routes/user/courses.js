@@ -30,13 +30,7 @@ router.get('/', async function (req, res, next) {
     }
 
     //模糊条件
-    if (query.name) {
-      condition.where = {
-        name: {
-          [Op.like]: `%${query.name}%`
-        }
-      }
-    }
+    condition.where=getLikeCourse(query)
 
     // const courses = await Course.findAll(condition)
     const { count, rows } = await Course.findAndCountAll(condition)
@@ -131,6 +125,29 @@ async function getCourse(req) {
     throw new NotFoundError(`ID:${id}的课程未找到`)
   }
   return course
+}
+
+/**
+ * 公共方法：模糊查询
+ */
+function getLikeCourse(query) {
+  let search
+  for (let key in query) {
+
+    if (key !== 'pageSize' && key !== 'currentPage') {
+
+      //模糊条件
+      if (query[key]) {
+        search = {
+          [key]: {
+            [Op.like]: `%${query[key]}%`
+          }
+        }
+      }
+    }
+
+  }
+  return search
 }
 
 module.exports = router;

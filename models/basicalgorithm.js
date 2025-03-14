@@ -14,6 +14,10 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   BasicAlgorithm.init({
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true
+    },
     title: DataTypes.STRING,
     code: DataTypes.TEXT,
     description: DataTypes.TEXT,

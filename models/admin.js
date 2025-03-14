@@ -14,6 +14,10 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   Admin.init({
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true
+    },
     username: {
       type:DataTypes.STRING,
       allowNull:false,

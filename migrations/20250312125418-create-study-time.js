@@ -14,6 +14,7 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       date: {
+        defaultValue:new Date(),
         type: Sequelize.DATE
       },
       duration: {

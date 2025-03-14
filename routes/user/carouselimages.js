@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-const { Carouselimage } = require('../../models')
+const { CarouselImage } = require('../../models')
 //模糊搜索需要
 const { Op } = require('sequelize')
 //错误类
@@ -29,8 +29,8 @@ router.get('/', async function (req, res, next) {
       offset: offset
     }
 
-    // const carouselimages = await Carouselimage.findAll(condition)
-    const { count, rows } = await Carouselimage.findAndCountAll(condition)
+    // const carouselimages = await CarouselImage.findAll(condition)
+    const { count, rows } = await CarouselImage.findAndCountAll(condition)
 
     success(res, '查询轮播图列表成功', {
       carouselimages: rows,
@@ -52,7 +52,7 @@ router.get('/', async function (req, res, next) {
  */
 router.get('/:id', async function (req, res, next) {
   try {
-    const carouselimage = await getCarouselimage(req)
+    const carouselimage = await getCarouselImage(req)
 
     success(res,'查询轮播图详情成功',{carouselimage})
   } catch (error) {
@@ -66,7 +66,7 @@ router.get('/:id', async function (req, res, next) {
  */
 router.post('/', async function (req, res,) {
   try {
-    const carouselimage = await Carouselimage.create(req.body)
+    const carouselimage = await CarouselImage.create(req.body)
 
     success(res,'发送成功',{carouselimage},201)
   } catch (error) {
@@ -80,7 +80,7 @@ router.post('/', async function (req, res,) {
  */
 router.delete('/:id', async function (req, res) {
   try {
-    const carouselimage = await getCarouselimage(req)
+    const carouselimage = await getCarouselImage(req)
 
 
     await carouselimage.destroy()
@@ -96,7 +96,7 @@ router.delete('/:id', async function (req, res) {
  */
 router.put('/:id', async function (req, res) {
   try {
-    const carouselimage = await getCarouselimage(req)
+    const carouselimage = await getCarouselImage(req)
 
     await carouselimage.update(req.body)
 
@@ -110,12 +110,12 @@ router.put('/:id', async function (req, res) {
 /**
  * 公共方法：查询当前轮播图
  */
-async function getCarouselimage(req) {
+async function getCarouselImage(req) {
   //获取轮播图ID
   const { id } = req.params
 
   //查询当前轮播图
-  const carouselimage = await Carouselimage.findByPk(id)
+  const carouselimage = await CarouselImage.findByPk(id)
 
   //如果没有找到就抛出异常
   if (!carouselimage) {
@@ -123,5 +123,6 @@ async function getCarouselimage(req) {
   }
   return carouselimage
 }
+
 
 module.exports = router;

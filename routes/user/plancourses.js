@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-const { Plancourse } = require('../../models')
+const { PlanCourse } = require('../../models')
 //模糊搜索需要
 const { Op } = require('sequelize')
 //错误类
@@ -29,8 +29,10 @@ router.get('/', async function (req, res, next) {
       offset: offset
     }
 
-    // const plancourses = await Plancourse.findAll(condition)
-    const { count, rows } = await Plancourse.findAndCountAll(condition)
+    condition.where=getLikePlanCourse(query)
+
+    // const plancourses = await PlanCourse.findAll(condition)
+    const { count, rows } = await PlanCourse.findAndCountAll(condition)
 
     success(res, '查询依计划推荐课程列表成功', {
       plancourses: rows,
@@ -52,7 +54,7 @@ router.get('/', async function (req, res, next) {
  */
 router.get('/:id', async function (req, res, next) {
   try {
-    const plancourse = await getPlancourse(req)
+    const plancourse = await getPlanCourse(req)
 
     success(res,'查询依计划推荐课程详情成功',{plancourse})
   } catch (error) {
@@ -66,7 +68,7 @@ router.get('/:id', async function (req, res, next) {
  */
 router.post('/', async function (req, res,) {
   try {
-    const plancourse = await Plancourse.create(req.body)
+    const plancourse = await PlanCourse.create(req.body)
 
     success(res,'发送成功',{plancourse},201)
   } catch (error) {
@@ -80,7 +82,7 @@ router.post('/', async function (req, res,) {
  */
 router.delete('/:id', async function (req, res) {
   try {
-    const plancourse = await getPlancourse(req)
+    const plancourse = await getPlanCourse(req)
 
 
     await plancourse.destroy()
@@ -96,7 +98,7 @@ router.delete('/:id', async function (req, res) {
  */
 router.put('/:id', async function (req, res) {
   try {
-    const plancourse = await getPlancourse(req)
+    const plancourse = await getPlanCourse(req)
 
     await plancourse.update(req.body)
 
@@ -110,18 +112,41 @@ router.put('/:id', async function (req, res) {
 /**
  * 公共方法：查询当前依计划推荐课程
  */
-async function getPlancourse(req) {
+async function getPlanCourse(req) {
   //获取依计划推荐课程ID
   const { id } = req.params
 
   //查询当前依计划推荐课程
-  const plancourse = await Plancourse.findByPk(id)
+  const plancourse = await PlanCourse.findByPk(id)
 
   //如果没有找到就抛出异常
   if (!plancourse) {
     throw new NotFoundError(`ID:${id}的依计划推荐课程未找到`)
   }
   return plancourse
+}
+
+/**
+ * 公共方法：模糊查询
+ */
+function getLikePlanCourse(query) {
+  let search
+  for (let key in query) {
+
+    if (key !== 'pageSize' && key !== 'currentPage') {
+
+      //模糊条件
+      if (query[key]) {
+        search = {
+          [key]: {
+            [Op.like]: `%${query[key]}%`
+          }
+        }
+      }
+    }
+
+  }
+  return search
 }
 
 module.exports = router;

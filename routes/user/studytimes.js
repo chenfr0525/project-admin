@@ -1,10 +1,10 @@
 var express = require('express');
 var router = express.Router();
-const { Studytime } = require('../../models')
+const { StudyTime } = require('../../models')
 //模糊搜索需要
 const { Op } = require('sequelize')
 //错误类
-const { NotFoundError, success,failure } = require('../../utils/response')
+const { NotFoundError, success, failure } = require('../../utils/response')
 
 /**
  * 查询学习时间列表(模糊搜索)++所有
@@ -29,8 +29,10 @@ router.get('/', async function (req, res, next) {
       offset: offset
     }
 
-    // const studytimes = await Studytime.findAll(condition)
-    const { count, rows } = await Studytime.findAndCountAll(condition)
+    condition.where = getLikeStudyTime(query)
+
+    // const studytimes = await StudyTime.findAll(condition)
+    const { count, rows } = await StudyTime.findAndCountAll(condition)
 
     success(res, '查询学习时间列表成功', {
       studytimes: rows,
@@ -42,21 +44,35 @@ router.get('/', async function (req, res, next) {
     })
   }
   catch (error) {
-    failure(res,error)
+    failure(res, error)
   }
 });
 
 /**
- * 查询学习时间详情(id)
- * GET /admin/studytimes/:id
+ * 查询学习时间详情(studentId)
+ * GET /admin/studytimes/:studentId
  */
-router.get('/:id', async function (req, res, next) {
+router.get('/:studentId', async function (req, res, next) {
   try {
-    const studytime = await getStudytime(req)
 
-    success(res,'查询学习时间详情成功',{studytime})
+    //获取学习时间ID
+    const { studentId } = req.params
+
+    //查询当前学习时间
+    const studytime = await StudyTime.findOne({
+      where: {
+        studentId     
+      }
+    })
+
+    //如果没有找到就抛出异常
+    if (!studytime) {
+      throw new NotFoundError(`ID:${studentId}的学习时间未找到`)
+    }
+
+    success(res, '查询学习时间详情成功', { studytime })
   } catch (error) {
-    failure(res,error)
+    failure(res, error)
   }
 })
 
@@ -66,11 +82,11 @@ router.get('/:id', async function (req, res, next) {
  */
 router.post('/', async function (req, res,) {
   try {
-    const studytime = await Studytime.create(req.body)
+    const studytime = await StudyTime.create(req.body)
 
-    success(res,'发送成功',{studytime},201)
+    success(res, '发送成功', { studytime }, 201)
   } catch (error) {
-    failure(res,error)
+    failure(res, error)
   }
 })
 
@@ -80,13 +96,13 @@ router.post('/', async function (req, res,) {
  */
 router.delete('/:id', async function (req, res) {
   try {
-    const studytime = await getStudytime(req)
+    const studytime = await getStudyTime(req)
 
 
     await studytime.destroy()
-    success(res,'删除学习时间成功')
+    success(res, '删除学习时间成功')
   } catch (error) {
-    failure(res,error)
+    failure(res, error)
   }
 })
 
@@ -96,32 +112,55 @@ router.delete('/:id', async function (req, res) {
  */
 router.put('/:id', async function (req, res) {
   try {
-    const studytime = await getStudytime(req)
+    const studytime = await getStudyTime(req)
 
     await studytime.update(req.body)
 
-    success(res,'更新学习时间成功',{studytime})
+    success(res, '更新学习时间成功', { studytime })
 
   } catch (error) {
-    failure(res,error)
+    failure(res, error)
   }
 })
 
 /**
  * 公共方法：查询当前学习时间
  */
-async function getStudytime(req) {
+async function getStudyTime(req) {
   //获取学习时间ID
   const { id } = req.params
 
   //查询当前学习时间
-  const studytime = await Studytime.findByPk(id)
+  const studytime = await StudyTime.findByPk(id)
 
   //如果没有找到就抛出异常
   if (!studytime) {
     throw new NotFoundError(`ID:${id}的学习时间未找到`)
   }
   return studytime
+}
+
+/**
+ * 公共方法：模糊查询
+ */
+function getLikeStudyTime(query) {
+  let search
+  for (let key in query) {
+
+    if (key !== 'pageSize' && key !== 'currentPage') {
+
+      //模糊条件
+      if (query[key]) {
+        search = {
+          [key]: {
+            [Op.like]: `%${query[key]}%`
+          }
+        }
+      }
+    }
+
+  }
+  return search
 }
 
 module.exports = router;

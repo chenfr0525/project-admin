@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-const { Progresse } = require('../../models')
+const { Progress } = require('../../models')
 //模糊搜索需要
 const { Op } = require('sequelize')
 //错误类
@@ -29,8 +29,10 @@ router.get('/', async function (req, res, next) {
       offset: offset
     }
 
-    // const progresses = await Progresse.findAll(condition)
-    const { count, rows } = await Progresse.findAndCountAll(condition)
+    condition.where=getLikeProgress(query)
+
+    // const progresses = await Progress.findAll(condition)
+    const { count, rows } = await Progress.findAndCountAll(condition)
 
     success(res, '查询学习进度列表成功', {
       progresses: rows,
@@ -52,7 +54,7 @@ router.get('/', async function (req, res, next) {
  */
 router.get('/:id', async function (req, res, next) {
   try {
-    const progresse = await getProgresse(req)
+    const progresse = await getProgress(req)
 
     success(res,'查询学习进度详情成功',{progresse})
   } catch (error) {
@@ -66,7 +68,7 @@ router.get('/:id', async function (req, res, next) {
  */
 router.post('/', async function (req, res,) {
   try {
-    const progresse = await Progresse.create(req.body)
+    const progresse = await Progress.create(req.body)
 
     success(res,'发送成功',{progresse},201)
   } catch (error) {
@@ -80,7 +82,7 @@ router.post('/', async function (req, res,) {
  */
 router.delete('/:id', async function (req, res) {
   try {
-    const progresse = await getProgresse(req)
+    const progresse = await getProgress(req)
 
 
     await progresse.destroy()
@@ -96,7 +98,7 @@ router.delete('/:id', async function (req, res) {
  */
 router.put('/:id', async function (req, res) {
   try {
-    const progresse = await getProgresse(req)
+    const progresse = await getProgress(req)
 
     await progresse.update(req.body)
 
@@ -110,18 +112,41 @@ router.put('/:id', async function (req, res) {
 /**
  * 公共方法：查询当前学习进度
  */
-async function getProgresse(req) {
+async function getProgress(req) {
   //获取学习进度ID
   const { id } = req.params
 
   //查询当前学习进度
-  const progresse = await Progresse.findByPk(id)
+  const progresse = await Progress.findByPk(id)
 
   //如果没有找到就抛出异常
   if (!progresse) {
     throw new NotFoundError(`ID:${id}的学习进度未找到`)
   }
   return progresse
+}
+
+/**
+ * 公共方法：模糊查询
+ */
+function getLikeProgress(query) {
+  let search
+  for (let key in query) {
+
+    if (key !== 'pageSize' && key !== 'currentPage') {
+
+      //模糊条件
+      if (query[key]) {
+        search = {
+          [key]: {
+            [Op.like]: `%${query[key]}%`
+          }
+        }
+      }
+    }
+
+  }
+  return search
 }
 
 module.exports = router;
