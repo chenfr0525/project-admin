@@ -2,7 +2,8 @@ var express = require('express');
 var router = express.Router();
 const { MotivationalQuote } = require('../../models')
 //错误类
-const { NotFoundError, success,failure } = require('../../utils/response')
+const {NotFound}=require('../../utils/errors')
+const {success,failure } = require('../../utils/response')
 
 /**
  * 查询激励语句列表(模糊搜索)++所有
@@ -91,7 +92,7 @@ async function getMotivationalQuote(req) {
 
   //如果没有找到就抛出异常
   if (!motivationallquote) {
-    throw new NotFoundError(`ID:${id}的激励语句未找到`)
+    throw new NotFound(`ID:${id}的激励语句未找到`)
   }
   return motivationallquote
 }

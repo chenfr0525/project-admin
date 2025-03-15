@@ -1,10 +1,11 @@
 var express = require('express');
 var router = express.Router();
-const { Instructor } = require('../../models')
+const { Instructor,Course } = require('../../models')
 //模糊搜索需要
 const { Op } = require('sequelize')
 //错误类
-const { NotFoundError, success,failure } = require('../../utils/response')
+const {NotFound}=require('../../utils/errors')
+const {success,failure } = require('../../utils/response')
 
 /**
  * 查询讲师列表(模糊搜索)++所有
@@ -24,6 +25,7 @@ router.get('/', async function (req, res, next) {
     const offset = (currentPage - 1) * pageSize
 
     const condition = {
+      ...getCondition(),
       order: [['id', 'DESC']],
       limit: pageSize,
       offset: offset
@@ -111,6 +113,22 @@ router.put('/:id', async function (req, res) {
 })
 
 /**
+ * 公共方法：关联分类
+*/
+function getCondition() {
+  return {
+    attributes: { exclude: ['CourseId'] },//排序大写ID
+    include: [
+      {
+        model: Course,
+        as: 'course',
+        attributes: ['id', 'name']
+      }
+    ]
+  }
+}
+
+/**
  * 公共方法：查询当前讲师
  */
 async function getInstructor(req) {
@@ -122,7 +140,7 @@ async function getInstructor(req) {
 
   //如果没有找到就抛出异常
   if (!instructor) {
-    throw new NotFoundError(`ID:${id}的讲师未找到`)
+    throw new NotFound(`ID:${id}的讲师未找到`)
   }
   return instructor
 }

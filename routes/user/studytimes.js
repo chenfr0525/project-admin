@@ -1,10 +1,11 @@
 var express = require('express');
 var router = express.Router();
-const { StudyTime } = require('../../models')
+const { StudyTime,Student } = require('../../models')
 //模糊搜索需要
 const { Op } = require('sequelize')
 //错误类
-const { NotFoundError, success, failure } = require('../../utils/response')
+const {NotFound}=require('../../utils/errors')
+const {success,failure } = require('../../utils/response')
 
 /**
  * 查询学习时间列表(模糊搜索)++所有
@@ -24,6 +25,7 @@ router.get('/', async function (req, res, next) {
     const offset = (currentPage - 1) * pageSize
 
     const condition = {
+      ...getCondition(),
       order: [['id', 'DESC']],
       limit: pageSize,
       offset: offset
@@ -67,7 +69,7 @@ router.get('/:studentId', async function (req, res, next) {
 
     //如果没有找到就抛出异常
     if (!studytime) {
-      throw new NotFoundError(`ID:${studentId}的学习时间未找到`)
+      throw new NotFound(`ID:${studentId}的学习时间未找到`)
     }
 
     success(res, '查询学习时间详情成功', { studytime })
@@ -124,6 +126,22 @@ router.put('/:id', async function (req, res) {
 })
 
 /**
+ * 公共方法：关联分类
+*/
+function getCondition() {
+  return {
+    attributes: { exclude: ['StudentId'] },//排序大写ID
+    include: [
+      {
+        model: Student,
+        as: 'student',
+        attributes: ['id', 'username']
+      }
+    ]
+  }
+}
+
+/**
  * 公共方法：查询当前学习时间
  */
 async function getStudyTime(req) {
@@ -135,7 +153,7 @@ async function getStudyTime(req) {
 
   //如果没有找到就抛出异常
   if (!studytime) {
-    throw new NotFoundError(`ID:${id}的学习时间未找到`)
+    throw new NotFound(`ID:${id}的学习时间未找到`)
   }
   return studytime
 }

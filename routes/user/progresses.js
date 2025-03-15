@@ -1,10 +1,11 @@
 var express = require('express');
 var router = express.Router();
-const { Progress } = require('../../models')
+const { Progress,PlanCourse } = require('../../models')
 //模糊搜索需要
 const { Op } = require('sequelize')
 //错误类
-const { NotFoundError, success,failure } = require('../../utils/response')
+const {NotFound}=require('../../utils/errors')
+const {success,failure } = require('../../utils/response')
 
 /**
  * 查询学习进度列表(模糊搜索)++所有
@@ -24,6 +25,7 @@ router.get('/', async function (req, res, next) {
     const offset = (currentPage - 1) * pageSize
 
     const condition = {
+      ...getCondition(),
       order: [['id', 'DESC']],
       limit: pageSize,
       offset: offset
@@ -110,6 +112,22 @@ router.put('/:id', async function (req, res) {
 })
 
 /**
+ * 公共方法：关联分类
+*/
+function getCondition() {
+  return {
+    attributes: { exclude: ['plancourseId'] },//排序大写ID
+    include: [
+      {
+        model: PlanCourse,
+        as: 'plancourse',
+        attributes: ['id', 'planid','courseid']
+      }
+    ]
+  }
+}
+
+/**
  * 公共方法：查询当前学习进度
  */
 async function getProgress(req) {
@@ -121,7 +139,7 @@ async function getProgress(req) {
 
   //如果没有找到就抛出异常
   if (!progresse) {
-    throw new NotFoundError(`ID:${id}的学习进度未找到`)
+    throw new NotFound(`ID:${id}的学习进度未找到`)
   }
   return progresse
 }

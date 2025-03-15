@@ -1,10 +1,11 @@
 var express = require('express');
 var router = express.Router();
-const { Plan } = require('../../models')
+const { Plan, Student } = require('../../models')
 //模糊搜索需要
 const { Op } = require('sequelize')
 //错误类
-const { NotFoundError, success,failure } = require('../../utils/response')
+const {NotFound}=require('../../utils/errors')
+const {success,failure } = require('../../utils/response')
 
 /**
  * 查询计划列表(模糊搜索)++所有
@@ -24,12 +25,13 @@ router.get('/', async function (req, res, next) {
     const offset = (currentPage - 1) * pageSize
 
     const condition = {
+      ...getCondition(),
       order: [['id', 'DESC']],
       limit: pageSize,
       offset: offset
     }
 
-    condition.where=getLikePlan(query)
+    condition.where = getLikePlan(query)
 
     // const plans = await Plan.findAll(condition)
     const { count, rows } = await Plan.findAndCountAll(condition)
@@ -44,7 +46,7 @@ router.get('/', async function (req, res, next) {
     })
   }
   catch (error) {
-    failure(res,error)
+    failure(res, error)
   }
 });
 
@@ -56,9 +58,9 @@ router.get('/:id', async function (req, res, next) {
   try {
     const plan = await getPlan(req)
 
-    success(res,'查询计划详情成功',{plan})
+    success(res, '查询计划详情成功', { plan })
   } catch (error) {
-    failure(res,error)
+    failure(res, error)
   }
 })
 
@@ -70,9 +72,9 @@ router.post('/', async function (req, res,) {
   try {
     const plan = await Plan.create(req.body)
 
-    success(res,'发送成功',{plan},201)
+    success(res, '发送成功', { plan }, 201)
   } catch (error) {
-    failure(res,error)
+    failure(res, error)
   }
 })
 
@@ -83,12 +85,10 @@ router.post('/', async function (req, res,) {
 router.delete('/:id', async function (req, res) {
   try {
     const plan = await getPlan(req)
-
-
     await plan.destroy()
-    success(res,'删除计划成功')
+    success(res, '删除计划成功')
   } catch (error) {
-    failure(res,error)
+    failure(res, error)
   }
 })
 
@@ -102,12 +102,28 @@ router.put('/:id', async function (req, res) {
 
     await plan.update(req.body)
 
-    success(res,'更新计划成功',{plan})
+    success(res, '更新计划成功', { plan })
 
   } catch (error) {
-    failure(res,error)
+    failure(res, error)
   }
 })
+
+/**
+ * 公共方法：关联分类
+*/
+function getCondition() {
+  return {
+    attributes: { exclude: ['StudentId'] },//排序大写ID
+    include: [
+      {
+        model: Student,
+        as: 'student',
+        attributes: ['id', 'username']
+      }
+    ]
+  }
+}
 
 /**
  * 公共方法：查询当前计划
@@ -121,7 +137,7 @@ async function getPlan(req) {
 
   //如果没有找到就抛出异常
   if (!plan) {
-    throw new NotFoundError(`ID:${id}的计划未找到`)
+    throw new NotFound(`ID:${id}的计划未找到`)
   }
   return plan
 }

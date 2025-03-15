@@ -1,10 +1,11 @@
 var express = require('express');
 var router = express.Router();
-const { Information } = require('../../models')
+const { Information,Admin } = require('../../models')
 //模糊搜索需要
 const { Op } = require('sequelize')
 //错误类
-const { NotFoundError, success,failure } = require('../../utils/response')
+const {NotFound}=require('../../utils/errors')
+const {success,failure } = require('../../utils/response')
 
 /**
  * 查询通知列表(模糊搜索)++所有
@@ -15,6 +16,7 @@ router.get('/', async function (req, res, next) {
     //模糊查询
     const query = req.query
     const condition = {
+      ...getCondition(),
       order: [['id', 'DESC']]
     }
 
@@ -53,7 +55,10 @@ router.get('/:id', async function (req, res, next) {
  */
 router.post('/', async function (req, res,) {
   try {
-    const information = await Information.create(req.body)
+    const body=req.body
+    body.adminId=req.admin.id
+
+    const information = await Information.create(body)
 
     success(res,'发送成功',{information},201)
   } catch (error) {
@@ -95,6 +100,22 @@ router.put('/:id', async function (req, res) {
 })
 
 /**
+ * 公共方法：关联分类
+*/
+function getCondition() {
+  return {
+    attributes: { exclude: ['adminId'] },//排序大写ID
+    include: [
+      {
+        model: Admin,
+        as: 'admin',
+        attributes: ['id', 'username']
+      }
+    ]
+  }
+}
+
+/**
  * 公共方法：查询当前通知
  */
 async function getInformation(req) {
@@ -106,7 +127,7 @@ async function getInformation(req) {
 
   //如果没有找到就抛出异常
   if (!information) {
-    throw new NotFoundError(`ID:${id}的通知未找到`)
+    throw new NotFound(`ID:${id}的通知未找到`)
   }
   return information
 }

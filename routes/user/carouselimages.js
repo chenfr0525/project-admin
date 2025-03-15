@@ -4,7 +4,8 @@ const { CarouselImage } = require('../../models')
 //模糊搜索需要
 const { Op } = require('sequelize')
 //错误类
-const { NotFoundError, success,failure } = require('../../utils/response')
+const {NotFound}=require('../../utils/errors')
+const {success,failure } = require('../../utils/response')
 
 /**
  * 查询轮播图列表(模糊搜索)++所有
@@ -119,7 +120,7 @@ async function getCarouselImage(req) {
 
   //如果没有找到就抛出异常
   if (!carouselimage) {
-    throw new NotFoundError(`ID:${id}的轮播图未找到`)
+    throw new NotFound(`ID:${id}的轮播图未找到`)
   }
   return carouselimage
 }

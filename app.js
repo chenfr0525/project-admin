@@ -7,12 +7,18 @@ var cookieParser = require('cookie-parser');
 //日志文件
 var logger = require('morgan');
 
+require('dotenv').config()
+const adminAuth=require('./middlewares/admin-auth')
+const studentAuth=require('./middlewares/student-auth')
+
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 // 后台路由文件
 var adminArticlesRouter = require('./routes/admin/articles');
 var adminsRouter = require('./routes/admin/admin');
 var informationArticlesRouter = require('./routes/admin/informations');
+var adminChartRouter = require('./routes/admin/charts');
+var adminAuthRouter = require('./routes/admin/auth');
 //前台路由文件
 var userStudentsRouter = require('./routes/user/students');
 var algorithmRouter = require('./routes/user/basicalgorithms');
@@ -28,6 +34,8 @@ var plansRouter = require('./routes/user/plans');
 var progressRouter = require('./routes/user/progresses');
 var remendRouter = require('./routes/user/remends');
 var studyTimeRouter = require('./routes/user/studytimes');
+var weekTimeRouter = require('./routes/user/weektimes');
+var userAuthRouter = require('./routes/user/auth');
 
 
 
@@ -44,25 +52,29 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 //后台
-app.use('/admin/articles',adminArticlesRouter)
-app.use('/admin/informations',informationArticlesRouter)
+app.use('/admin/articles',adminAuth,adminArticlesRouter)
+app.use('/admin/informations',adminAuth,informationArticlesRouter)
+app.use('/admin/chart',adminAuth,adminChartRouter)
+app.use('/admin/auth',adminAuthRouter)
 app.use('/admin',adminsRouter)
 
 //前台
+app.use('/user/auth',userAuthRouter)
 app.use('/user/students',userStudentsRouter)
-app.use('/user/algorithms',algorithmRouter)
-app.use('/user/carouselimage',carouselImageRouter)
-app.use('/user/commonerror',commonErrorRouter )
-app.use('/user/coursechapter',courseChapterRouter)
-app.use('/user/courses',courseRouter)
-app.use('/user/informationstatus',informationStatusRouter)
+app.use('/user/algorithms',studentAuth,algorithmRouter)
+app.use('/user/carouselimage',studentAuth,carouselImageRouter)
+app.use('/user/commonerror',studentAuth,commonErrorRouter )
+app.use('/user/coursechapter',studentAuth,courseChapterRouter)
+app.use('/user/courses',studentAuth,courseRouter)
+app.use('/user/informationstatus',studentAuth,informationStatusRouter)
 app.use('/user/instructor',instructorRouter)
 app.use('/user/motivationquote',motivationQuoteRouter)
-app.use('/user/plancourse',planCourseRouter)
-app.use('/user/plans',plansRouter)
-app.use('/user/progress',progressRouter)
+app.use('/user/plancourse',studentAuth,planCourseRouter)
+app.use('/user/plans',studentAuth,plansRouter)
+app.use('/user/progress',studentAuth,progressRouter)
 app.use('/user/remends',remendRouter)
-app.use('/user/studytime',studyTimeRouter)
+app.use('/user/studytime',studentAuth,studyTimeRouter)
+app.use('/user/weektime',studentAuth,weekTimeRouter)
 
 
 module.exports = app;

@@ -4,7 +4,8 @@ const { Admin } = require('../../models')
 //模糊搜索需要
 const { Op } = require('sequelize')
 //错误类
-const { NotFoundError, success,failure } = require('../../utils/response')
+const {NotFound}=require('../../utils/errors')
+const {success,failure } = require('../../utils/response')
 
 /**
  * 查询管理员列表(模糊搜索)++所有
@@ -122,7 +123,7 @@ async function getAdmin(req) {
 
   //如果没有找到就抛出异常
   if (!admin) {
-    throw new NotFoundError(`ID:${id}的管理员未找到`)
+    throw new NotFound(`ID:${id}的管理员未找到`)
   }
   return admin
 }

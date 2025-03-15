@@ -1,10 +1,11 @@
 var express = require('express');
 var router = express.Router();
-const { PlanCourse } = require('../../models')
+const { PlanCourse,Plan,Course } = require('../../models')
 //模糊搜索需要
 const { Op } = require('sequelize')
 //错误类
-const { NotFoundError, success,failure } = require('../../utils/response')
+const {NotFound}=require('../../utils/errors')
+const {success,failure } = require('../../utils/response')
 
 /**
  * 查询依计划推荐课程列表(模糊搜索)++所有
@@ -24,6 +25,7 @@ router.get('/', async function (req, res, next) {
     const offset = (currentPage - 1) * pageSize
 
     const condition = {
+      ...getCondition(),
       order: [['id', 'DESC']],
       limit: pageSize,
       offset: offset
@@ -110,6 +112,27 @@ router.put('/:id', async function (req, res) {
 })
 
 /**
+ * 公共方法：关联分类
+*/
+function getCondition() {
+  return {
+    attributes: { exclude: ['PlanId','CourseId'] },//排序大写ID
+    include: [
+      {
+        model: Plan,
+        as: 'plan',
+        attributes: ['id', 'goal','interests']
+      },
+      {
+        model: Course,
+        as: 'course',
+        attributes: ['id', 'name']
+      }
+    ]
+  }
+}
+
+/**
  * 公共方法：查询当前依计划推荐课程
  */
 async function getPlanCourse(req) {
@@ -121,7 +144,7 @@ async function getPlanCourse(req) {
 
   //如果没有找到就抛出异常
   if (!plancourse) {
-    throw new NotFoundError(`ID:${id}的依计划推荐课程未找到`)
+    throw new NotFound(`ID:${id}的依计划推荐课程未找到`)
   }
   return plancourse
 }
