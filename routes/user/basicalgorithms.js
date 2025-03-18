@@ -15,34 +15,18 @@ router.get('/', async function (req, res, next) {
   try {
     //模糊查询
     const query = req.query
-
-    //分页处理
-    //当前是第几页，如果不传，那就是第一页
-    const currentPage = Math.abs(Number(query.currentPage)) || 1
-    //每页显示多少条数据，如果不传，那就显示10条
-    const pageSize = Math.abs(Number(query.pageSize)) || 10
-    //计算offset
-    const offset = (currentPage - 1) * pageSize
-
     const condition = {
-      order: [['id', 'DESC']],
-      limit: pageSize,
-      offset: offset
+      order: [['id', 'DESC']]
     }
 
     //模糊条件
     condition.where=getLikeAlgorithm(query)
 
     // const basicalgorithms = await BasicAlgorithm.findAll(condition)
-    const { count, rows } = await BasicAlgorithm.findAndCountAll(condition)
+    const {rows } = await BasicAlgorithm.findAndCountAll(condition)
 
     success(res, '查询算法列表成功', {
-      basicalgorithms: rows,
-      pagination: {
-        total: count,
-        currentPage,
-        pageSize
-      }
+      basicalgorithms: rows
     })
   }
   catch (error) {

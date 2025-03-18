@@ -6,6 +6,8 @@ const { Op } = require('sequelize')
 //错误类
 const {NotFound}=require('../../utils/errors')
 const {success,failure } = require('../../utils/response')
+//中间件
+const adminAuth=require('../../middlewares/admin-auth')
 
 /**
  * 查询管理员列表(模糊搜索)++所有
@@ -51,12 +53,13 @@ router.get('/', async function (req, res, next) {
 });
 
 /**
- * 查询管理员详情(id)
- * GET /admin/admins/:id
+ * 查询管理员详情
+ * GET /admin/admins/me
  */
-router.get('/:id', async function (req, res, next) {
+router.get('/me',adminAuth, async function (req, res, next) {
   try {
-    const admin = await getAdmin(req)
+  //查询当前管理员
+  const admin = await Admin.findByPk(req.admin.id)
 
     success(res,'查询管理员详情成功',{admin})
   } catch (error) {
@@ -71,7 +74,6 @@ router.get('/:id', async function (req, res, next) {
 router.post('/', async function (req, res,) {
   try {
     const admin = await Admin.create(req.body)
-
     success(res,'发送成功',{admin},201)
   } catch (error) {
     failure(res,error)

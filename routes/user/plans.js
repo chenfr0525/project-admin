@@ -4,60 +4,21 @@ const { Plan, Student } = require('../../models')
 //模糊搜索需要
 const { Op } = require('sequelize')
 //错误类
-const {NotFound}=require('../../utils/errors')
-const {success,failure } = require('../../utils/response')
+const { NotFound } = require('../../utils/errors')
+const { success, failure } = require('../../utils/response')
 
 /**
- * 查询计划列表(模糊搜索)++所有
+ * 查询计划详情
  * GET /admin/plans
  */
 router.get('/', async function (req, res, next) {
   try {
-    //模糊查询
-    const query = req.query
-
-    //分页处理
-    //当前是第几页，如果不传，那就是第一页
-    const currentPage = Math.abs(Number(query.currentPage)) || 1
-    //每页显示多少条数据，如果不传，那就显示10条
-    const pageSize = Math.abs(Number(query.pageSize)) || 10
-    //计算offset
-    const offset = (currentPage - 1) * pageSize
-
-    const condition = {
-      ...getCondition(),
-      order: [['id', 'DESC']],
-      limit: pageSize,
-      offset: offset
-    }
-
-    condition.where = getLikePlan(query)
-
-    // const plans = await Plan.findAll(condition)
-    const { count, rows } = await Plan.findAndCountAll(condition)
-
-    success(res, '查询计划列表成功', {
-      plans: rows,
-      pagination: {
-        total: count,
-        currentPage,
-        pageSize
+    const id = req.student.id
+    const plan = await Plan.findOne({
+      where: {
+        StudentId: id
       }
     })
-  }
-  catch (error) {
-    failure(res, error)
-  }
-});
-
-/**
- * 查询计划详情(id)
- * GET /admin/plans/:id
- */
-router.get('/:id', async function (req, res, next) {
-  try {
-    const plan = await getPlan(req)
-
     success(res, '查询计划详情成功', { plan })
   } catch (error) {
     failure(res, error)
@@ -70,9 +31,11 @@ router.get('/:id', async function (req, res, next) {
  */
 router.post('/', async function (req, res,) {
   try {
-    const plan = await Plan.create(req.body)
+    const body = req.body
+    body.studentId = req.student.id
+    const plan = await Plan.create(body)
 
-    success(res, '发送成功', { plan }, 201)
+    success(res, '创建计划成功', { plan }, 201)
   } catch (error) {
     failure(res, error)
   }
@@ -96,9 +59,23 @@ router.delete('/:id', async function (req, res) {
  * 更新计划
  * PUT /admin/plans/:id
  */
-router.put('/:id', async function (req, res) {
+router.put('/', async function (req, res) {
   try {
-    const plan = await getPlan(req)
+
+    const id = req.student.id
+
+    //查询当前计划
+    const plan = await Plan.findOne({
+      where: {
+        StudentId: id
+      }
+    })
+
+    //如果没有找到就抛出异常
+    if (!plan) {
+      throw new NotFound(`ID:${id}的计划未找到`)
+    }
+
 
     await plan.update(req.body)
 

@@ -4,8 +4,10 @@ const { Student } = require('../../models')
 //模糊搜索需要
 const { Op } = require('sequelize')
 //错误类
-const {NotFound}=require('../../utils/errors')
-const {success,failure } = require('../../utils/response')
+const { NotFound } = require('../../utils/errors')
+const { success, failure } = require('../../utils/response')
+//中间件
+const studentAuth = require('../../middlewares/student-auth')
 
 /**
  * 查询学生列表(模糊搜索)++所有
@@ -13,7 +15,7 @@ const {success,failure } = require('../../utils/response')
  */
 router.get('/', async function (req, res, next) {
   try {
-    let query=req.query
+    let query = req.query
 
     //分页处理
     //当前是第几页，如果不传，那就是第一页
@@ -29,7 +31,7 @@ router.get('/', async function (req, res, next) {
       offset: offset
     }
 
-    condition.where= getLikeStudent(query)
+    condition.where = getLikeStudent(query)
 
     // const students = await Student.findAll(condition)
     const { count, rows } = await Student.findAndCountAll(condition)
@@ -49,12 +51,17 @@ router.get('/', async function (req, res, next) {
 });
 
 /**
- * 查询学生详情(id)
- * GET /admin/students/:id
+ * 查询学生详情
+ * GET /admin/students/me
  */
-router.get('/:id', async function (req, res, next) {
+router.get('/me', studentAuth, async function (req, res, next) {
   try {
-    const student = await getStudent(req)
+
+    const body = req.body
+    body.studentId = req.student.id
+
+    //查询当前学生
+    const student = await Student.findByPk(body.studentId)
 
     success(res, '查询学生详情成功', { student })
   } catch (error) {

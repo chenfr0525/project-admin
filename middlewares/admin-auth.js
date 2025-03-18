@@ -19,6 +19,7 @@ module.exports=async function(req,res,next){
       throw new Unauthorized('用户不存在')
     }
     req.admin=admin
+    console.log(req.admin)
     next()
   }catch(e){
     failure(res,e)

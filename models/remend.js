@@ -15,7 +15,8 @@ module.exports = (sequelize, DataTypes) => {
   }
   Remend.init({
     name: DataTypes.STRING,
-    img: DataTypes.STRING
+    img: DataTypes.STRING,
+    type: DataTypes.STRING,
   }, {
     sequelize,
     modelName: 'Remend',
