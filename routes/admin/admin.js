@@ -4,10 +4,10 @@ const { Admin } = require('../../models')
 //模糊搜索需要
 const { Op } = require('sequelize')
 //错误类
-const {NotFound}=require('../../utils/errors')
-const {success,failure } = require('../../utils/response')
+const { NotFound } = require('../../utils/errors')
+const { success, failure } = require('../../utils/response')
 //中间件
-const adminAuth=require('../../middlewares/admin-auth')
+const adminAuth = require('../../middlewares/admin-auth')
 
 /**
  * 查询管理员列表(模糊搜索)++所有
@@ -29,13 +29,23 @@ router.get('/', async function (req, res, next) {
     const condition = {
       order: [['id', 'DESC']],
       limit: pageSize,
-      offset: offset
+      offset: offset,
+      where: {}
     }
 
     //模糊条件
-    condition.where=getLikeAdmin(query)
+    for (let key in query) {
+      if (key !== 'pageSize' && key !== 'currentPage') {
+        if (query[key] != null && query[key] !== '') {
+          condition.where[key] = {
+            [Op.like]: `%${query[key]}%`
 
-    // const admins = await Admin.findAll(condition)
+          }
+
+        }
+      }
+    }
+
     const { count, rows } = await Admin.findAndCountAll(condition)
 
     success(res, '查询管理员列表成功', {
@@ -48,7 +58,7 @@ router.get('/', async function (req, res, next) {
     })
   }
   catch (error) {
-    failure(res,error)
+    failure(res, error)
   }
 });
 
@@ -56,14 +66,29 @@ router.get('/', async function (req, res, next) {
  * 查询管理员详情
  * GET /admin/admins/me
  */
-router.get('/me',adminAuth, async function (req, res, next) {
+router.get('/me', adminAuth, async function (req, res, next) {
   try {
-  //查询当前管理员
-  const admin = await Admin.findByPk(req.admin.id)
+    //查询当前管理员
+    const admin = await Admin.findByPk(req.admin.id)
 
-    success(res,'查询管理员详情成功',{admin})
+    success(res, '查询管理员详情成功', { admin })
   } catch (error) {
-    failure(res,error)
+    failure(res, error)
+  }
+})
+
+/**
+ * 查询管理员详情
+ * GET /admin/:id
+ */
+router.get('/:id', async function (req, res, next) {
+  try {
+    //查询当前管理员
+    const admin = await Admin.findByPk(req.params.id)
+
+    success(res, '查询管理员详情成功', { admin })
+  } catch (error) {
+    failure(res, error)
   }
 })
 
@@ -74,9 +99,9 @@ router.get('/me',adminAuth, async function (req, res, next) {
 router.post('/', async function (req, res,) {
   try {
     const admin = await Admin.create(req.body)
-    success(res,'发送成功',{admin},201)
+    success(res, '发送成功', { admin }, 201)
   } catch (error) {
-    failure(res,error)
+    failure(res, error)
   }
 })
 
@@ -86,13 +111,16 @@ router.post('/', async function (req, res,) {
  */
 router.delete('/:id', async function (req, res) {
   try {
-    const admin = await getAdmin(req)
 
-
-    await admin.destroy()
-    success(res,'删除管理员成功')
+    const idList = req.params.id.split(',')
+    idList.forEach(async (id) => {
+      req.params.id = id
+      const admin = await getAdmin(req)
+      await admin.destroy()
+    })
+    success(res, '删除管理员成功')
   } catch (error) {
-    failure(res,error)
+    failure(res, error)
   }
 })
 
@@ -106,10 +134,10 @@ router.put('/:id', async function (req, res) {
 
     await admin.update(req.body)
 
-    success(res,'更新管理员成功',{admin})
+    success(res, '更新管理员成功', { admin })
 
   } catch (error) {
-    failure(res,error)
+    failure(res, error)
   }
 })
 
@@ -128,29 +156,6 @@ async function getAdmin(req) {
     throw new NotFound(`ID:${id}的管理员未找到`)
   }
   return admin
-}
-
-/**
- * 公共方法：模糊查询
- */
-function getLikeAdmin(query) {
-  let search
-  for (let key in query) {
-
-    if (key !== 'pageSize' && key !== 'currentPage') {
-
-      //模糊条件
-      if (query[key]) {
-        search = {
-          [key]: {
-            [Op.like]: `%${query[key]}%`
-          }
-        }
-      }
-    }
-
-  }
-  return search
 }
 
 module.exports = router;

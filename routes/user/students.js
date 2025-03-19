@@ -16,7 +16,6 @@ const studentAuth = require('../../middlewares/student-auth')
 router.get('/', async function (req, res, next) {
   try {
     let query = req.query
-
     //分页处理
     //当前是第几页，如果不传，那就是第一页
     const currentPage = Math.abs(Number(query.currentPage)) || 1
@@ -28,31 +27,49 @@ router.get('/', async function (req, res, next) {
     const condition = {
       order: [['id', 'DESC']],
       limit: pageSize,
-      offset: offset
+      offset: offset,
+      where:{}
     }
 
-    condition.where = getLikeStudent(query)
+    for (let key in query) {
+      if (key !== 'pageSize' && key !== 'currentPage') {
+        if (query[key] != null && query[key] !== '') {
+          if (key === 'username') {
+            condition.where[key] = {
+              [Op.like]: `%${query[key]}%`
+            }
+          }
+          if (key === 'status' || key === 'phone') {
+            condition.where[key] = query[key]
+          }
+          if (key === 'createdAt' && Array.isArray(query[key]) && query[key].length === 2) {
+            condition.where[key] = {
+              [Op.between]: [query[key][0], query[key][1]]
+            };
+          }
+        }
+      }
+    }
 
-    // const students = await Student.findAll(condition)
     const { count, rows } = await Student.findAndCountAll(condition)
 
-    success(res, '查询学生列表成功', {
-      students: rows,
-      pagination: {
-        total: count,
-        currentPage,
-        pageSize
-      }
-    })
-  }
+  success(res, '查询学生列表成功', {
+    students: rows,
+    pagination: {
+      total: count,
+      currentPage,
+      pageSize
+    }
+  })
+}
   catch (error) {
-    failure(res, error)
-  }
+  failure(res, error)
+}
 });
 
 /**
  * 查询学生详情
- * GET /admin/students/me
+ * GET /admin/students/me(学生端)
  */
 router.get('/me', studentAuth, async function (req, res, next) {
   try {
@@ -68,6 +85,25 @@ router.get('/me', studentAuth, async function (req, res, next) {
     failure(res, error)
   }
 })
+
+
+/**
+ * 查询学生详情（后台）
+ * GET /admin/students/:id
+ */
+router.get('/:id', async function (req, res, next) {
+  try {
+
+    const id = req.params.id
+    //查询学生
+    const student = await Student.findByPk(id)
+
+    success(res, '查询学生详情成功', { student })
+  } catch (error) {
+    failure(res, error)
+  }
+})
+
 
 /**
  * 创建学生
@@ -88,10 +124,12 @@ router.post('/', async function (req, res,) {
  */
 router.delete('/:id', async function (req, res) {
   try {
-    const student = await getStudent(req)
-
-
-    await student.destroy()
+    const idList = req.params.id.split(',')
+    idList.forEach(async (id) => {
+      req.params.id = id
+      const student = await getStudent(req)
+      await student.destroy()
+    })
     success(res, '删除学生成功')
   } catch (error) {
     failure(res, error)
@@ -105,7 +143,6 @@ router.delete('/:id', async function (req, res) {
 router.put('/:id', async function (req, res) {
   try {
     const student = await getStudent(req)
-
     await student.update(req.body)
 
     success(res, '更新学生成功', { student })

@@ -54,7 +54,7 @@ app.use(cors())
 //后台
 app.use('/admin/home',adminHomeRouter)
 app.use('/admin/articles',adminAuth,adminArticlesRouter)
-app.use('/admin/informations',adminAuth,informationArticlesRouter)
+app.use('/admin/informations',informationArticlesRouter)
 app.use('/admin/chart',adminAuth,adminChartRouter)
 app.use('/admin/auth',adminAuthRouter)
 app.use('/admin',adminsRouter)

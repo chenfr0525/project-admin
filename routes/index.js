@@ -1,12 +1,10 @@
 var express = require('express');
 var router = express.Router();
-const { MotivationalQuote, CarouselImage, Remend, StudyTime,WeekTime,InformationStatus } = require('../models')
+const { MotivationalQuote, CarouselImage, Remend, StudyTime,WeekTime } = require('../models')
 
 //错误类
 const { NotFound, BadRequest, Unauthorized } = require('../utils/errors')
 const { success, failure } = require('../utils/response');
-const { where } = require('sequelize');
-
 
 /**
  * 首页

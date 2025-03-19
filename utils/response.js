@@ -68,8 +68,6 @@ function failure(res,error){
     })
   }
 
-  console.log(error)
-
   res.status(500).json({
     status:500,
     message:'服务器错误',
