@@ -1,11 +1,14 @@
 var express = require('express');
 var router = express.Router();
 const { Admin } = require('../../models')
+const path = require('path');
+const fs = require('fs');
 //模糊搜索需要
 const { Op } = require('sequelize')
 //错误类
-const { NotFound } = require('../../utils/errors')
+const { NotFound,BadRequest } = require('../../utils/errors')
 const { success, failure } = require('../../utils/response')
+const {singleFileUpload}=require('../../utils/upload')
 //中间件
 const adminAuth = require('../../middlewares/admin-auth')
 
@@ -138,6 +141,55 @@ router.put('/:id', async function (req, res) {
 
   } catch (error) {
     failure(res, error)
+  }
+})
+
+/**
+ * 上传图片
+ * POST /admin/image
+ */
+router.post('/image',adminAuth,function(req,res){
+  try{
+    singleFileUpload(req,res,async function(error){
+      if(error){
+        return failure(res,error)
+      }
+      if(!req.file){
+        return failure(res,new BadRequest('请选择要上传的文件'))
+      }
+
+      // 验证文件类型
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+    if (!allowedTypes.includes(req.file.mimetype)) {
+      fs.unlinkSync(req.file.path); // 删除已上传的无效文件
+      return failure(res, new BadRequest('只允许上传图片文件'));
+    }
+
+      // 图片的相对路径
+     const imagePath = `uploads/${req.file.filename}`
+     const admin = await Admin.findByPk(req.admin.id)
+     // 删除旧图片
+    if (admin.avatar) {
+      try {
+        const oldImagePath = path.join(__dirname, '../../public', admin.avatar);
+        if (fs.existsSync(oldImagePath)) {
+          fs.unlinkSync(oldImagePath);
+        }
+      } catch (err) {
+        console.error('删除旧图片失败:', err);
+        // 不阻止继续执行，记录错误即可
+      }
+    }
+
+    await admin.update({avatar:imagePath})
+      success(res,`上传成功,路径为：${imagePath}`,{avatar:imagePath})
+    })
+  }catch(error){
+     // 确保上传失败时删除临时文件
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    failure(res, error);
   }
 })
 

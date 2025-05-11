@@ -1,3 +1,5 @@
+
+const multer=require('multer')
 /**
  * 请求成功
  * @param res
@@ -66,6 +68,16 @@ function failure(res,error){
       message:'资源不存在',
       errors:[error.message]
     })
+  }
+
+  if(error instanceof multer.MulterError){
+    if(error.code==='LIMIT_FILE_SIZE'){
+      return res.status(413).json({
+        status:413,
+        message:'文件大小超出限制',
+        errors:[error.message]
+      })
+    }
   }
 
   res.status(500).json({

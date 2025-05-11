@@ -20,6 +20,7 @@ var adminsRouter = require('./routes/admin/admin');
 var informationArticlesRouter = require('./routes/admin/informations');
 var adminChartRouter = require('./routes/admin/charts');
 var adminAuthRouter = require('./routes/admin/auth');
+var uploadRouter = require('./routes/up');
 //前台路由文件
 var indexRouter = require('./routes/index');
 var userStudentsRouter = require('./routes/user/students');
@@ -51,6 +52,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors())
 
 //挂载路由
+app.use('/upload',uploadRouter)
 //后台
 app.use('/admin/home',adminHomeRouter)
 app.use('/admin/articles',adminAuth,adminArticlesRouter)
